@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+set -e
+
+if [ -z ${NAMESPACE} ]; then
+  NAMESPACE="default"
+fi
+
+if [ -z ${KUBERNETES_TOKEN} ]; then
+  KUBERNETES_TOKEN=$(cat "/run/secrets/kubernetes.io/serviceaccount/token")
+fi
+
+if [ -z ${KUBERNETES_SERVER} ]; then
+  KUBERNETES_SERVER="https://kubernetes.default"
+fi
+
+kubectl config set-credentials default --token=${KUBERNETES_TOKEN}
+
+if [ ! -z ${KUBERNETES_CERT} ]; then
+  echo ${KUBERNETES_CERT} | base64 -d > /tmp/ca.crt
+  kubectl config set-cluster default --server=${KUBERNETES_SERVER} --certificate-authority=/tmp/ca.crt
+else
+  echo "Use service account cert"  
+  kubectl config set-cluster default --server=${KUBERNETES_SERVER} --certificate-authority="/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+fi
+
+kubectl config set-context default --cluster=default --namespace=$NAMESPACE --user=default
+kubectl config use-context default

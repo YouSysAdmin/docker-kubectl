@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -e
+
+PATH="/opt/bitnami/kubectl/bin:$PATH"
+init-kubectl
+kubectl $@
